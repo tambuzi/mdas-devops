@@ -4,41 +4,64 @@ set -e
 
 # install dep
 #instalamos las dependencias
-go get github.com/gorilla/websocket
-go get github.com/labstack/echo
+install() {
+    go get github.com/gorilla/websocket
+    go get github.com/labstack/echo
+}
 
 # cleanup del directorio build
-rm -rf build || true
-pkill votingapp || ps aux | grep votingapp | awk {'print $?'} | head -1 | xargs kill -9
+cleanup() {
+    pkill votingapp || ps aux | grep votingapp | awk {'print $1'} | head -1 | xargs kill -9
+    rm -rf build || true
+}
 
-# build 
-build () {
+# build
+build() {
     mkdir build # creamos el directorio build
     go build -o ./build ./src/votingapp
     cp -r ./src/votingapp/ui ./build
+
+    pushd build
+    ./votingapp &
+    popd
 }
 
-pushd build
-./votingapp &
-popd
+#Retry system
+retry() {
+    n=0
+    interval=5
+    retries=3
+    $@ && return 0
+    until [ $n -ge $retries ]; do
+        n=$(($n + 1))
+        echo "Retrying...$n of $retries, wait for $interval seconds"
+        sleep $interval
+        $@ && return 0
+    done
+
+    return 1
+}
 
 # test
 test() {
-    curl --url http://localhost/vote \
-    --request POST \
-    --data '{"topics": ["dev", "ops"]}' \
-    --header "Content-Type: application/json"
+    votingurl='http://localhost/vote'
+    
+    curl --url  $votingurl \
+        --request POST \
+        --data '{"topics":["dev", "ops"]}' \
+        --header "Content-Type: application/json" 
 
-    curl --url http://localhost/vote \
-    --request PUT \
-    --data '{"topics": "dev"}' \
-    --header "Content-Type: application/json"
+    curl --url $votingurl \
+        --request PUT \
+        --data '{"topic": "dev"}' \
+        --header "Content-Type: application/json" 
+    
+    winner=$(curl --url $votingurl \
+        --request DELETE \
+        --header "Content-Type: application/json" | jq -r '.winner')
 
-    winner=$(curl --url http://localhost/vote \
-    --request DELETE \
-    --header "Content-Type: application/json" | jq -r '.winner')
+    echo "Winner IS "$winner
 
-    echo"Winner is " $Winner
     expectedWinner="dev"
 
     if [ "$expectedWinner" == "$winner" ]; then
@@ -50,8 +73,9 @@ test() {
     fi
 }
 
+install
+cleanup
 build
-test
-
+retry test
 
 #./pipeline.sh  && echo “GREN exitCode: $?” || echo “RED exitCode: $?”
