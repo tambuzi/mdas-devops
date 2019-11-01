@@ -24,7 +24,9 @@ build() {
 
     #pushd build
     #./votingapp &
-    docker run --name myvotingapp -v $(pwd)/build:/app -w /app -p 8080:80 -d ubuntu ./votingapp #lanzamos la aplicación directamente en el contendedor
+    docker build -t src/votingapp/Dockerfile -t tambuzi1997/votingapp .
+    docker run --name myvotingapp  -p 8080:80 -d tambuzi1997/votingapp
+    #docker run --name myvotingapp -v $(pwd)/build:/app -w /app -p 8080:80 -d ubuntu ./votingapp #lanzamos la aplicación directamente en el contendedor
     #popd
 }
 
@@ -79,5 +81,8 @@ install
 cleanup
 GOOS=linux build #compilamos con linux el build
 retry test
+
+#delivery
+docker push 
 
 #./pipeline-docker.sh  && echo “GREN exitCode: $?” || echo “RED exitCode: $?”
