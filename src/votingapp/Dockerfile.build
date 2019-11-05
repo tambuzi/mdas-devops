@@ -1,0 +1,13 @@
+FROM golang
+
+COPY build . .
+
+#Cada RUN genera un layer nuevo en Docker
+
+#Instalamos dependencias
+RUN go get github.com/labstack/echo && \
+    go get github.com/gorilla/websocket
+
+#Generamos el build
+RUN go build -o ./build ./src/votingapp && \
+    cp -r ./src/votingapp/ui ./build
