@@ -1,0 +1,22 @@
+#Versión del sistema del fichero docker compose
+version: "3.7"
+
+services:
+  myredis:
+    image: redis
+
+  myvotingapp:
+    image: tambuzi1997/votingapp
+    build: 
+      dockerfile: Dockerfile
+      context: ./src/votingapp
+    ports:
+      - 8080:80
+    environment:
+      REDIS: "myredis:6379"
+  mytest:
+    image: tambuzi1997/votingapp-test
+    build: 
+      context: ./test
+    environment:
+      VOTINGAPP_HOST: "myvotingapp"
