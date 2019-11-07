@@ -1,20 +1,11 @@
 #!/bin/bash
 set -e 
 
-# cleanup
-    docker-compose rm -f || true
+docker-compose rm -f && \
+docker-compose up --build -d && \
+docker-compose run --rm mytest && \
+docker-compose push && \
+echo "GREEN" || echo "RED"
 
 
-# build 
-#contruimos y ejecutamos los contenedores   
-docker-compose up --build -d
-
-
-#Generamos los tests
-docker-compose run --rm mytest
-#devolvemos el código que devuelve el contenedor y elimina el contenedor mytest
-
-#delivery
-docker-compose push
-
-#./pipeline-compose.sh  && echo “GREN exitCode: $?” || echo “RED exitCode: $?”
+#./pipeline-compose.sh
