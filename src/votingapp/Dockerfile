@@ -7,7 +7,8 @@ COPY . .
 
 #Instalamos dependencias
 RUN go get github.com/labstack/echo && \
-    go get github.com/gorilla/websocket
+    go get github.com/gorilla/websocket && \
+    go get github.com/go-redis/redis
 
 #Generamos el build
 RUN go build -o /build/votingapp && \

@@ -5,6 +5,7 @@ set -e
 deps(){
     go get github.com/gorilla/websocket
     go get github.com/labstack/echo
+    go get github.com/go-redis/redis
 }
 
 # cleanup
@@ -18,6 +19,8 @@ build(){
     mkdir build
     go build -o ./build ./src/votingapp 
     cp -r ./src/votingapp/ui ./build
+
+    docker run -p 6379:6379 -d redis || true #ejecutamos redis
 
     pushd build
     ./votingapp &
