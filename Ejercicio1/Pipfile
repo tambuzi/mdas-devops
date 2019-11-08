@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+autopep8 = "*"
+yapf = "*"
+black = "*"
+
+[packages]
+pytest = "*"
+pylint = "*"
+requests = "*"
+
+[requires]
+python_version = "2.7.16"
+
+[pipenv]
+allow_prereleases = true
