@@ -31,7 +31,7 @@ build(){
 test() {
     chmod +x E1.py
     ./E1.py
-    echo "ENTRA TEST"
+    
 }
 
 deps
