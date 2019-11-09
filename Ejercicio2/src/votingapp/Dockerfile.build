@@ -1,0 +1,14 @@
+FROM golang:alpine AS builder
+
+COPY . .
+
+#Cada RUN genera un layer nuevo en Docker
+
+#Instalamos dependencias
+RUN go get github.com/labstack/echo && \
+    go get github.com/gorilla/websocket && \
+    go get github.com/go-redis/redis
+
+#Generamos el build
+RUN go build -o ./build ./src/votingapp && \
+    cp -r ./src/votingapp/ui ./build
