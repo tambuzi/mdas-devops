@@ -1,0 +1,37 @@
+#Versión del sistema del fichero docker compose
+version: "3.7"
+
+services:
+  myredis:
+    image: redis
+
+  mynginx: 
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports: 
+      - 8080:80
+
+  myvotingapp:
+    image: tambuzi1997/votingapp
+    build: 
+      dockerfile: Dockerfile
+      context: ./src/votingapp
+    environment:
+      REDIS: "myredis:6379"
+
+  mytest:
+    image: tambuzi1997/votingapp-test
+    build: 
+      context: ./test
+    environment:
+      VOTINGAPP_HOST: "myvotingapp"
+  
+  #mynginx2:
+   # image: tambuzi1997/nginx
+    #build:
+     # context: ./nginx
+      #dockerfile: Dockerfile
+    #ports:
+     # - 8080:8080
+
