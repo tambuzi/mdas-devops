@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: votingapp
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: myvotingapp
+  name: myvotingapp
+  namespace: votingapp
+spec:
+  containers:
+    - image: tambuzi1997/votingapp:0.2
+      name: votingapp
+      env:
+        - name: REDIS
+          value: "myredis:6379"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: myredis
+  name: myredis
+  namespace: votingapp
+spec:
+  containers:
+    - image: redis
+      name: myredis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myredis
+  namespace: votingapp
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: myvotingapp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myvotingapp
+  namespace: votingapp
+spec:
+  ports:
+    - nodePort: 30132
+      port: 80
+      targetPort: 80
+  selector:
+    app: myvotingapp
+  type: NodePort
+
+

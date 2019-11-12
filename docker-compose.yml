@@ -6,7 +6,7 @@ services:
     image: redis
 
   myvotingapp:
-    image: tambuzi1997/votingapp
+    image: tambuzi1997/votingapp:0.2
     build: 
       dockerfile: Dockerfile
       context: ./src/votingapp

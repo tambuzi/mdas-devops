@@ -1,0 +1,17 @@
+# Creamos un nuevo contenedor
+kubectl run mynginx --generator=run-pod/v1 --image=nginx --namespace mdas
+# Visualizamos el pod
+kubectl get pods --namespace mdas
+# Describe el pod deseado
+kubectl describe pod mynginx
+
+kubectl run tools --generator=run-pod/v1 -it --rm --image=tambuzi1997/kurl -- bash
+
+#Exponemos la app mediante el puerto 80 como un servicio
+kubectl expose pod mynginx --port=80 --target-port=80 --type NodePort
+#Revisamos la ip de salida
+kubectl get services -o wide
+
+kubectl get pods mynginx -o yaml > mynginx.yaml
+
+kubectl apply -f mynginx.yaml
