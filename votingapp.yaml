@@ -40,7 +40,8 @@ spec:
     - port: 6379
       targetPort: 6379
   selector:
-    app: myvotingapp
+    app: myredis
+  type: NodePort
 ---
 apiVersion: v1
 kind: Service
