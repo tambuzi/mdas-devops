@@ -4,31 +4,126 @@ metadata:
   name: votingapp
 ---
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    events { worker_connections 1024; }
+    http {
+        include /etc/nginx/mime.types;
+        upstream voting{
+            server myvotingapp; 
+        }
+        server {
+          listen 80;
+          location / {
+              proxy_pass         http://voting/;
+              proxy_redirect     off;
+              proxy_set_header   Host $host;
+              proxy_set_header   X-Real-IP $remote_addr;
+              proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header   X-Forwarded-Host $server_name;
+          }
+          location /ws {
+              proxy_pass http://voting/ws;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+          }
+        }
+    }
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: myngix
+  labels:
+    app: myngix
+  namespace: votingapp
+spec:
+  selector:
+    matchLabels:
+      app: mynginx
+  replicas: 1 # indica al controlador que ejecute solo 1 pod
+  template:
+    metadata:
+      labels:
+        app: mynginx
+    spec:
+      containers:
+      - image: nginx
+        name: mynginx
+        volumeMounts: 
+        - mountPath: /etc/nginx
+          name: nginx-conf
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+          items:
+          - key: nginx.conf
+            path: nginx.conf # definimos el path del configMap 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mynginx
+  namespace: votingapp
+spec:
+  selector:
+    app: mynginx
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: NodePort
+---  
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   labels:
     app: myvotingapp
   name: myvotingapp
   namespace: votingapp
 spec:
-  containers:
-    - image: tambuzi1997/votingapp:0.2
-      name: votingapp
-      env:
-        - name: REDIS
-          value: "myredis:6379"
+  selector:
+    matchLabels:
+      app: myvotingapp
+  replicas: 2 # indica al controlador que ejecute 2 pods
+  template:
+    metadata:
+      labels:
+        app: myvotingapp
+    spec:
+      containers:
+      - image: tambuzi1997/votingapp:0.2
+        name: votingapp
+        env:
+          - name: REDIS
+            value: "myredis:6379"
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1 
+kind: Deployment
 metadata:
   labels:
     app: myredis
   name: myredis
   namespace: votingapp
 spec:
-  containers:
-    - image: redis
-      name: myredis
+  selector:
+    matchLabels:
+      app: myredis
+  replicas: 1 # indica al controlador que ejecute 1 pod
+  template:
+    metadata:
+      labels:
+        app: myredis
+    spec:
+      containers:
+      - image: redis
+        name: myredis
+
+
 ---
 apiVersion: v1
 kind: Service
@@ -41,7 +136,7 @@ spec:
       targetPort: 6379
   selector:
     app: myredis
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
